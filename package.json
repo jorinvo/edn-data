@@ -1,0 +1,54 @@
+{
+  "name": "edn-data",
+  "version": "1.0.0",
+  "description": "EDN parser and generator that work with plain JS data, with support for TS and node streams",
+  "main": "dist/index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "ava",
+    "test:watch": "ava --watch",
+    "build": "tsc",
+    "lint": "eslint '*/**/*.ts'",
+    "fix": "npm run -s lint -- --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jorinvo/edn-data.git"
+  },
+  "keywords": [
+    "edn",
+    "parser",
+    "typescript",
+    "stream"
+  ],
+  "author": "Jorin Vogel",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jorinvo/edn-data/issues"
+  },
+  "homepage": "https://github.com/jorinvo/edn-data#readme",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^2.27.0",
+    "@typescript-eslint/parser": "^2.27.0",
+    "ava": "^3.8.2",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.10.1",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-prettier": "^3.1.2",
+    "prettier": "^2.0.4",
+    "stream-to-array": "^2.3.0",
+    "ts-node": "^8.8.2",
+    "tsc-watch": "^4.2.3",
+    "typescript": "^3.8.3"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  }
+}
