@@ -258,6 +258,20 @@ test('map as map', (t) => {
   );
 });
 
+test('comment', (t) => {
+  t.is(parseEDNString('; "hi"'), null);
+});
+test('ignore comments', (t) => {
+  t.is(
+    parseEDNString(`
+      ; look at this EDN
+      "EDN"
+      ;; nice, isn't it?
+    `),
+    'EDN',
+  );
+});
+
 test('tagged key', (t) => {
   t.deepEqual(parseEDNString('#ns.a/tag :key'), {
     tag: 'ns.a/tag',

@@ -1,7 +1,8 @@
 // TODO: support chars
+// TODO: support unicode chars
 // TODO: support bigint
-// TODO: support comment
 // TODO: support discard
+// TODO: An empty char is not allowed, right?
 // TODO: separate generation and parsing into files
 // TODO: keywords should contain a single slash
 // TODO: Can you tag a tagged val?
@@ -11,6 +12,9 @@
 // TODO: Error when wrong closing tag
 // TODO: Streaming maybe
 // TODO: test edn generation
+// TODO: Allow to specify handler functions for tags. Date is one implementation of that
+// TODO: Allow to drop tags, a special case of a generic handler function
+// TODO: Support browser (non-streaming)
 
 import * as stream from 'stream';
 
@@ -174,6 +178,7 @@ enum ParseMode {
   idle,
   string,
   escape,
+  comment,
 }
 enum StackItem {
   vector,
@@ -290,6 +295,10 @@ export class ParseEDNListSteam extends stream.Transform {
           this.state = '';
           continue;
         }
+        if (char === ';') {
+          this.mode = ParseMode.comment;
+          continue;
+        }
         if (spaceChars.includes(char)) {
           this.match();
           this.updateStack();
@@ -394,6 +403,10 @@ export class ParseEDNListSteam extends stream.Transform {
         const [stackItem, prevState] = this.stack.pop();
         this.mode = stackItem;
         this.state = prevState + escapedChar;
+      } else if (this.mode === ParseMode.comment) {
+        if (char === '\n') {
+          this.mode = ParseMode.idle;
+        }
       }
     }
     callback();
