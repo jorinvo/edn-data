@@ -1,7 +1,7 @@
+// TODO: support discard
 // TODO: support chars
 // TODO: support unicode chars
 // TODO: support bigint
-// TODO: support discard
 // TODO: An empty char is not allowed, right?
 // TODO: separate generation and parsing into files
 // TODO: keywords should contain a single slash
@@ -223,7 +223,7 @@ export class ParseEDNListSteam extends stream.Transform {
     this.listAs = listAs;
   }
 
-  updateStack() {
+  updateStack(): void {
     if (this.stack.length === 0 || this.result === undefined) {
       return;
     }
@@ -254,7 +254,7 @@ export class ParseEDNListSteam extends stream.Transform {
     this.result = undefined;
   }
 
-  match() {
+  match(): void {
     if (this.state === 'nil') {
       this.result = null;
     } else if (this.state === 'true') {
@@ -289,6 +289,7 @@ export class ParseEDNListSteam extends stream.Transform {
       }
 
       const char = edn[i];
+
       if (this.mode === ParseMode.idle) {
         if (char === '"') {
           this.mode = ParseMode.string;
@@ -307,26 +308,28 @@ export class ParseEDNListSteam extends stream.Transform {
         if (char === '}') {
           this.match();
           this.updateStack();
-          const [stackItem, prevState] = this.stack.pop();
-          if (stackItem === StackItem.map) {
-            // TODO: What if map is closed too early?
-            if (this.mapAs === 'object') {
-              // TODO: what if map has non-stringable keys? keys as JSON?
-              this.result = prevState[0].reduce((memo, [k, v]) => {
-                return { ...memo, [k]: v };
-              }, {});
-            } else if (this.mapAs === 'map') {
-              this.result = new Map(prevState[0]);
+          if (this.stack.length !== 0) {
+            const [stackItem, prevState] = this.stack.pop();
+            if (stackItem === StackItem.map) {
+              // TODO: What if map is closed too early?
+              if (this.mapAs === 'object') {
+                // TODO: what if map has non-stringable keys? keys as JSON?
+                this.result = prevState[0].reduce((memo, [k, v]) => {
+                  return { ...memo, [k]: v };
+                }, {});
+              } else if (this.mapAs === 'map') {
+                this.result = new Map(prevState[0]);
+              } else {
+                this.result = { map: prevState[0] };
+              }
             } else {
-              this.result = { map: prevState[0] };
-            }
-          } else {
-            if (this.setAs === 'array') {
-              this.result = prevState;
-            } else if (this.setAs === 'set') {
-              this.result = new Set(prevState);
-            } else {
-              this.result = { set: prevState };
+              if (this.setAs === 'array') {
+                this.result = prevState;
+              } else if (this.setAs === 'set') {
+                this.result = new Set(prevState);
+              } else {
+                this.result = { set: prevState };
+              }
             }
           }
           this.updateStack();
@@ -361,6 +364,8 @@ export class ParseEDNListSteam extends stream.Transform {
           continue;
         }
         if (char === '[') {
+          this.match();
+          this.updateStack();
           this.stack.push([StackItem.vector, []]);
           continue;
         } else if (char === '(') {
@@ -368,19 +373,27 @@ export class ParseEDNListSteam extends stream.Transform {
             this.started = true;
             continue;
           }
+          this.match();
+          this.updateStack();
           this.stack.push([StackItem.list, []]);
           continue;
         }
-
-        this.state += char;
-
-        if (this.state === '{') {
-          this.stack.push([StackItem.map, [[], []]]);
-          this.state = '';
-        } else if (this.state === '#{') {
+        if ((this.state + char).endsWith('#{')) {
+          this.state = this.state.slice(0, -1);
+          this.match();
+          this.updateStack();
           this.stack.push([StackItem.set, []]);
           this.state = '';
+          continue;
         }
+        if (char === '{') {
+          this.match();
+          this.updateStack();
+          this.stack.push([StackItem.map, [[], []]]);
+          this.state = '';
+          continue;
+        }
+        this.state += char;
         continue;
       } else if (this.mode === ParseMode.string) {
         if (char === '\\') {

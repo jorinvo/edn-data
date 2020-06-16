@@ -38,6 +38,25 @@ test('string with quote symbol', (t) => {
   t.is(parseEDNString('"\\""'), '"');
 });
 
+// test('char', (t) => {
+//   t.is(parseEDNString('\\a'), { char: 'a' });
+// });
+// test('char space', (t) => {
+//   t.is(parseEDNString('\\space'), { char: ' ' });
+// });
+// test('char newline', (t) => {
+//   t.is(parseEDNString('\\newline'), { char: '\n' });
+// });
+// test('char return', (t) => {
+//   t.is(parseEDNString('\\return'), { char: '\r' });
+// });
+// test('char tab', (t) => {
+//   t.is(parseEDNString('\\tab'), { char: '	' });
+// });
+// test('char backslash', (t) => {
+//   t.is(parseEDNString('\\\\'), { char: '\\' });
+// });
+
 test('int', (t) => {
   t.is(parseEDNString('928764'), 928764);
 });
@@ -148,6 +167,24 @@ test('vector of vectors', (t) => {
 test('vector of vectors without spaces', (t) => {
   t.deepEqual(parseEDNString('[[][]]'), [[], []]);
 });
+test('vector after symbol without space', (t) => {
+  t.deepEqual(parseEDNString('[hi[]]'), [{ sym: 'hi' }, []]);
+});
+test('vector before symbol without space', (t) => {
+  t.deepEqual(parseEDNString('[[]hi]'), [[], { sym: 'hi' }]);
+});
+test('vector after bool without space', (t) => {
+  t.deepEqual(parseEDNString('[true[]]'), [true, []]);
+});
+test('vector before bool without space', (t) => {
+  t.deepEqual(parseEDNString('[[]true]'), [[], true]);
+});
+test('vector after string without space', (t) => {
+  t.deepEqual(parseEDNString('["hi"[]]'), ['hi', []]);
+});
+test('vector before string without space', (t) => {
+  t.deepEqual(parseEDNString('[[]"hi"]'), [[], 'hi']);
+});
 
 test('empty list', (t) => {
   t.deepEqual(parseEDNString('()'), { list: [] });
@@ -174,6 +211,37 @@ test('list with string and bool', (t) => {
 test('list of lists', (t) => {
   t.deepEqual(parseEDNString('(true  ("one" ("two", nil )))'), {
     list: [true, { list: ['one', { list: ['two', null] }] }],
+  });
+});
+test('list after symbol without space', (t) => {
+  t.deepEqual(parseEDNString('(hi())'), {
+    list: [{ sym: 'hi' }, { list: [] }],
+  });
+});
+test('list before symbol without space', (t) => {
+  t.deepEqual(parseEDNString('(()hi)'), {
+    list: [{ list: [] }, { sym: 'hi' }],
+  });
+});
+test('list after bool without space', (t) => {
+  t.deepEqual(parseEDNString('(false())'), {
+    list: [false, { list: [] }],
+  });
+});
+test('list before bool without space', (t) => {
+  t.deepEqual(parseEDNString('(()false)'), {
+    list: [{ list: [] }, false],
+  });
+});
+
+test('list after string without space', (t) => {
+  t.deepEqual(parseEDNString('("hi"())'), {
+    list: ['hi', { list: [] }],
+  });
+});
+test('list before string without space', (t) => {
+  t.deepEqual(parseEDNString('(()"hi")'), {
+    list: [{ list: [] }, 'hi'],
   });
 });
 
@@ -223,6 +291,36 @@ test('set as set', (t) => {
     new Set([true, new Set(['one', new Set(['two', null])])]),
   );
 });
+test('set after symbol without space', (t) => {
+  t.deepEqual(parseEDNString('#{hi#{}}'), {
+    set: [{ sym: 'hi' }, { set: [] }],
+  });
+});
+test('set before symbol without space', (t) => {
+  t.deepEqual(parseEDNString('#{#{}hi}'), {
+    set: [{ set: [] }, { sym: 'hi' }],
+  });
+});
+test('set after bool without space', (t) => {
+  t.deepEqual(parseEDNString('#{true#{}}'), {
+    set: [true, { set: [] }],
+  });
+});
+test('set before bool without space', (t) => {
+  t.deepEqual(parseEDNString('#{#{}true}'), {
+    set: [{ set: [] }, true],
+  });
+});
+test('set after string without space', (t) => {
+  t.deepEqual(parseEDNString('#{"hi"#{}}'), {
+    set: ['hi', { set: [] }],
+  });
+});
+test('set before string without space', (t) => {
+  t.deepEqual(parseEDNString('#{#{}"hi"}'), {
+    set: [{ set: [] }, 'hi'],
+  });
+});
 
 test('empty map', (t) => {
   t.deepEqual(parseEDNString('{}'), { map: [] });
@@ -256,6 +354,36 @@ test('map as map', (t) => {
     parseEDNString('{"a"  {"b" {"c", 123}}}', { mapAs: 'map' }),
     new Map([['a', new Map([['b', new Map([['c', 123]])]])]]),
   );
+});
+test('map after symbol without space', (t) => {
+  t.deepEqual(parseEDNString('{hi{}}'), {
+    map: [[{ sym: 'hi' }, { map: [] }]],
+  });
+});
+test('map before symbol without space', (t) => {
+  t.deepEqual(parseEDNString('{{}hi}'), {
+    map: [[{ map: [] }, { sym: 'hi' }]],
+  });
+});
+test('map after bool without space', (t) => {
+  t.deepEqual(parseEDNString('{false{}}'), {
+    map: [[false, { map: [] }]],
+  });
+});
+test('map before bool without space', (t) => {
+  t.deepEqual(parseEDNString('{{}false}'), {
+    map: [[{ map: [] }, false]],
+  });
+});
+test('map after string without space', (t) => {
+  t.deepEqual(parseEDNString('{"hi"{}}'), {
+    map: [['hi', { map: [] }]],
+  });
+});
+test('map before string without space', (t) => {
+  t.deepEqual(parseEDNString('{{}"hi"}'), {
+    map: [[{ map: [] }, 'hi']],
+  });
 });
 
 test('comment', (t) => {
