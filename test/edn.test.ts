@@ -57,24 +57,24 @@ test('string before string without space', (t) => {
   t.deepEqual(parseEDNString('["hi""hi"]'), ['hi', 'hi']);
 });
 
-// test('char', (t) => {
-//   t.is(parseEDNString('\\a'), { char: 'a' });
-// });
-// test('char space', (t) => {
-//   t.is(parseEDNString('\\space'), { char: ' ' });
-// });
-// test('char newline', (t) => {
-//   t.is(parseEDNString('\\newline'), { char: '\n' });
-// });
-// test('char return', (t) => {
-//   t.is(parseEDNString('\\return'), { char: '\r' });
-// });
-// test('char tab', (t) => {
-//   t.is(parseEDNString('\\tab'), { char: '	' });
-// });
-// test('char backslash', (t) => {
-//   t.is(parseEDNString('\\\\'), { char: '\\' });
-// });
+test('char', (t) => {
+  t.deepEqual(parseEDNString('\\a'), { char: 'a' });
+});
+test('char space', (t) => {
+  t.deepEqual(parseEDNString('\\space'), { char: ' ' });
+});
+test('char newline', (t) => {
+  t.deepEqual(parseEDNString('\\newline'), { char: '\n' });
+});
+test('char return', (t) => {
+  t.deepEqual(parseEDNString('\\return'), { char: '\r' });
+});
+test('char tab', (t) => {
+  t.deepEqual(parseEDNString('\\tab'), { char: '	' });
+});
+test('char backslash', (t) => {
+  t.deepEqual(parseEDNString('\\\\'), { char: '\\' });
+});
 
 test('int', (t) => {
   t.is(parseEDNString('928764'), 928764);

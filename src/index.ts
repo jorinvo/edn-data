@@ -1,6 +1,6 @@
-// TODO: support chars
 // TODO: support unicode chars
 // TODO: support bigint
+// TODO: support charAsString
 // TODO: An empty char is not allowed, right?
 // TODO: separate generation and parsing into files
 // TODO: keywords should contain a single slash
@@ -259,24 +259,46 @@ export class ParseEDNListSteam extends stream.Transform {
 
   match(): void {
     if (this.state === 'nil') {
+      // nil
       this.result = null;
     } else if (this.state === 'true') {
+      // Boolean
       this.result = true;
     } else if (this.state === 'false') {
       this.result = false;
     } else if (this.state[0] === ':') {
+      // Keyword
       this.result =
         this.keywordAs === 'string'
           ? this.state.substr(1)
           : { key: this.state.substr(1) };
     } else if (this.state[0] === '#') {
+      // Tag
       this.stack.push([StackItem.tag, this.state.substr(1)]);
       this.result = undefined;
     } else if (intRegex.test(this.state)) {
+      // Int
       this.result = parseInt(this.state, 10);
     } else if (floatRegex.test(this.state)) {
+      // Float
       this.result = parseFloat(this.state);
+    } else if (this.state[0] === '\\') {
+      // Char
+      if (this.state === '\\space') {
+        this.result = { char: ' ' };
+      } else if (this.state === '\\newline') {
+        this.result = { char: '\n' };
+      } else if (this.state === '\\return') {
+        this.result = { char: '\r' };
+      } else if (this.state === '\\tab') {
+        this.result = { char: '	' };
+      } else if (this.state === '\\\\') {
+        this.result = { char: '\\' };
+      } else {
+        this.result = { char: this.state.substr(1) };
+      }
     } else if (this.state !== '') {
+      // Symbol
       this.result = { sym: this.state };
     }
     this.state = '';
