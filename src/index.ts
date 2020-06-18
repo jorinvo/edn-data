@@ -1,7 +1,5 @@
 // TODO: support unicode chars
 // TODO: support bigint
-// TODO: support charAsString
-// TODO: An empty char is not allowed, right?
 // TODO: separate generation and parsing into files
 // TODO: keywords should contain a single slash
 // TODO: Can you tag a tagged val?
@@ -46,8 +44,9 @@ type EDNValOrObject = EDNVal | { [key: string]: EDNValOrObject };
 interface ParseOptions {
   mapAs?: 'doubleArray' | 'object' | 'map';
   setAs?: 'object' | 'array' | 'set';
-  keywordAs?: 'object' | 'string';
   listAs?: 'object' | 'array';
+  keywordAs?: 'object' | 'string';
+  charAs?: 'object' | 'string';
 }
 
 const isEDNKeyword = (value: Record<string, EDNVal>): value is EDNKeyword => {
@@ -207,18 +206,21 @@ export class ParseEDNListSteam extends stream.Transform {
   mapAs: ParseOptions['mapAs'];
   setAs: ParseOptions['setAs'];
   keywordAs: ParseOptions['keywordAs'];
+  charAs: ParseOptions['charAs'];
   listAs: ParseOptions['listAs'];
 
   constructor({
     mapAs = 'doubleArray',
     setAs = 'object',
     keywordAs = 'object',
+    charAs = 'object',
     listAs = 'object',
   }: ParseOptions = {}) {
     super({ readableObjectMode: true });
     this.mapAs = mapAs;
     this.setAs = setAs;
     this.keywordAs = keywordAs;
+    this.charAs = charAs;
     this.listAs = listAs;
   }
 
@@ -284,18 +286,25 @@ export class ParseEDNListSteam extends stream.Transform {
       this.result = parseFloat(this.state);
     } else if (this.state[0] === '\\') {
       // Char
+      // TODO: invalid if nothing follows the \
+      let c: string;
       if (this.state === '\\space') {
-        this.result = { char: ' ' };
+        c = ' ';
       } else if (this.state === '\\newline') {
-        this.result = { char: '\n' };
+        c = '\n';
       } else if (this.state === '\\return') {
-        this.result = { char: '\r' };
+        c = '\r';
       } else if (this.state === '\\tab') {
-        this.result = { char: '	' };
+        c = '	';
       } else if (this.state === '\\\\') {
-        this.result = { char: '\\' };
+        c = '\\';
       } else {
-        this.result = { char: this.state.substr(1) };
+        c = this.state.substr(1);
+      }
+      if (this.charAs === 'string') {
+        this.result = c;
+      } else {
+        this.result = { char: c };
       }
     } else if (this.state !== '') {
       // Symbol

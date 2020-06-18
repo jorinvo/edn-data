@@ -75,6 +75,9 @@ test('char tab', (t) => {
 test('char backslash', (t) => {
   t.deepEqual(parseEDNString('\\\\'), { char: '\\' });
 });
+test('char as string', (t) => {
+  t.deepEqual(parseEDNString('\\abc', { charAs: 'string' }), 'abc');
+});
 
 test('int', (t) => {
   t.is(parseEDNString('928764'), 928764);
