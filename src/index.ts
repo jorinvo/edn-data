@@ -1,4 +1,3 @@
-// TODO: support discard
 // TODO: support chars
 // TODO: support unicode chars
 // TODO: support bigint
@@ -242,6 +241,10 @@ export class ParseEDNListSteam extends stream.Transform {
       }
     } else if (stackItem === StackItem.tag) {
       this.stack.pop();
+      if (prevState === '_') {
+        this.result = undefined;
+        return;
+      }
       if (prevState === 'inst') {
         // TODO: what if invalid date?
         this.result = new Date(this.result as string);
@@ -292,6 +295,8 @@ export class ParseEDNListSteam extends stream.Transform {
 
       if (this.mode === ParseMode.idle) {
         if (char === '"') {
+          this.match();
+          this.updateStack();
           this.mode = ParseMode.string;
           this.state = '';
           continue;
@@ -378,7 +383,14 @@ export class ParseEDNListSteam extends stream.Transform {
           this.stack.push([StackItem.list, []]);
           continue;
         }
-        if ((this.state + char).endsWith('#{')) {
+        const statePlusChar = this.state + char;
+        if (statePlusChar === '#_') {
+          this.stack.push([StackItem.tag, char]);
+          this.result = undefined;
+          this.state = '';
+          continue;
+        }
+        if (statePlusChar.endsWith('#{')) {
           this.state = this.state.slice(0, -1);
           this.match();
           this.updateStack();

@@ -3,12 +3,7 @@ import { promisify } from 'util';
 import * as streamToArray from 'stream-to-array';
 import test from 'ava';
 
-import {
-  EDNVal,
-  toEDNString,
-  parseEDNString,
-  parseEDNListStream,
-} from '../src';
+import { EDNVal, parseEDNString, parseEDNListStream } from '../src';
 
 test('empty string', (t) => {
   t.is(parseEDNString('""'), '');
@@ -36,6 +31,30 @@ test('string with backslash', (t) => {
 });
 test('string with quote symbol', (t) => {
   t.is(parseEDNString('"\\""'), '"');
+});
+test('string after symbol without space', (t) => {
+  t.deepEqual(parseEDNString('[hi"hi"]'), [{ sym: 'hi' }, 'hi']);
+});
+test('string before symbol without space', (t) => {
+  t.deepEqual(parseEDNString('["hi"hi]'), ['hi', { sym: 'hi' }]);
+});
+test('string after bool without space', (t) => {
+  t.deepEqual(parseEDNString('[true"hi"]'), [true, 'hi']);
+});
+test('string before bool without space', (t) => {
+  t.deepEqual(parseEDNString('["hi"true]'), ['hi', true]);
+});
+test('string after int without space', (t) => {
+  t.deepEqual(parseEDNString('[123"hi"]'), [123, 'hi']);
+});
+test('string before int without space', (t) => {
+  t.deepEqual(parseEDNString('["hi"123]'), ['hi', 123]);
+});
+test('string after string without space', (t) => {
+  t.deepEqual(parseEDNString('["hi""hi"]'), ['hi', 'hi']);
+});
+test('string before string without space', (t) => {
+  t.deepEqual(parseEDNString('["hi""hi"]'), ['hi', 'hi']);
 });
 
 // test('char', (t) => {
@@ -185,6 +204,12 @@ test('vector after string without space', (t) => {
 test('vector before string without space', (t) => {
   t.deepEqual(parseEDNString('[[]"hi"]'), [[], 'hi']);
 });
+test('vector after vector without space', (t) => {
+  t.deepEqual(parseEDNString('[[][]]'), [[], []]);
+});
+test('vector before vector without space', (t) => {
+  t.deepEqual(parseEDNString('[[][]]'), [[], []]);
+});
 
 test('empty list', (t) => {
   t.deepEqual(parseEDNString('()'), { list: [] });
@@ -233,7 +258,6 @@ test('list before bool without space', (t) => {
     list: [{ list: [] }, false],
   });
 });
-
 test('list after string without space', (t) => {
   t.deepEqual(parseEDNString('("hi"())'), {
     list: ['hi', { list: [] }],
@@ -244,7 +268,6 @@ test('list before string without space', (t) => {
     list: [{ list: [] }, 'hi'],
   });
 });
-
 test('list as array', (t) => {
   t.deepEqual(
     parseEDNString('(true  ("one" ("two", nil )))', { listAs: 'array' }),
@@ -415,6 +438,63 @@ test('#inst as Date', (t) => {
     parseEDNString('#inst "2020-04-12T21:39:15.482Z"'),
     new Date('2020-04-12T21:39:15.482Z'),
   );
+});
+
+test('discard string', (t) => {
+  t.is(parseEDNString('#_"hi"'), null);
+  t.is(parseEDNString('#_  "hi"'), null);
+});
+test('discard int', (t) => {
+  t.is(parseEDNString('#_928764'), null);
+  t.is(parseEDNString('#_  928764'), null);
+});
+test('discard symbol', (t) => {
+  t.deepEqual(parseEDNString('#_even? '), null);
+  t.deepEqual(parseEDNString('#_  even? '), null);
+});
+test('discard keyword', (t) => {
+  t.deepEqual(parseEDNString('#_:a'), null);
+  t.deepEqual(parseEDNString('#_  :a'), null);
+});
+test('discard vector', (t) => {
+  t.deepEqual(parseEDNString('#_[]'), null);
+  t.deepEqual(parseEDNString('#_  []'), null);
+});
+test('discard list', (t) => {
+  t.deepEqual(parseEDNString('#_()'), null);
+  t.deepEqual(parseEDNString('#_  ()'), null);
+});
+test('discard set', (t) => {
+  t.deepEqual(parseEDNString('#_#{}'), null);
+  t.deepEqual(parseEDNString('#_  #{}'), null);
+});
+test('discard map', (t) => {
+  t.deepEqual(parseEDNString('#_{}'), null);
+  t.deepEqual(parseEDNString('#_  {}'), null);
+});
+test('discard vector element', (t) => {
+  t.deepEqual(parseEDNString('[1 #_2 3]'), [1, 3]);
+  t.deepEqual(parseEDNString('[1 #_  2 3]'), [1, 3]);
+});
+test('discard list element', (t) => {
+  t.deepEqual(parseEDNString('(1 #_2 3)'), { list: [1, 3] });
+  t.deepEqual(parseEDNString('(1 #_  2 3)'), { list: [1, 3] });
+});
+test('discard set element', (t) => {
+  t.deepEqual(parseEDNString('#{1 #_2 3}'), { set: [1, 3] });
+  t.deepEqual(parseEDNString('#{1 #_  2 3}'), { set: [1, 3] });
+});
+test('discard map middle element', (t) => {
+  t.deepEqual(parseEDNString('{1 #_2 3}'), { map: [[1, 3]] });
+  t.deepEqual(parseEDNString('{1 #_  2 3}'), { map: [[1, 3]] });
+});
+test('discard map list element', (t) => {
+  t.deepEqual(parseEDNString('{1 2 #_3}'), { map: [[1, 2]] });
+  t.deepEqual(parseEDNString('{1 2 #_  3}'), { map: [[1, 2]] });
+});
+test('discard tag', (t) => {
+  t.deepEqual(parseEDNString('#_  #ns.a/tag :key'), null);
+  t.deepEqual(parseEDNString('#_#ns.a/tag :key'), null);
 });
 
 test('crux tx response', (t) => {
