@@ -491,7 +491,7 @@ test('discard map middle element', (t) => {
   t.deepEqual(parseEDNString('{1 #_2 3}'), { map: [[1, 3]] });
   t.deepEqual(parseEDNString('{1 #_  2 3}'), { map: [[1, 3]] });
 });
-test('discard map list element', (t) => {
+test('discard map last element', (t) => {
   t.deepEqual(parseEDNString('{1 2 #_3}'), { map: [[1, 2]] });
   t.deepEqual(parseEDNString('{1 2 #_  3}'), { map: [[1, 2]] });
 });
