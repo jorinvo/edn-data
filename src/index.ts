@@ -2,7 +2,6 @@
 // TODO: Allow to drop tags, a special case of a generic handler function
 // TODO: Support browser (non-streaming)
 // TODO: the return type can depend on the options
-// TODO: What happens with empty doc
 // TODO: Error when wrong closing tag
 // TODO: test edn generation
 // TODO: keywords must contain a single slash

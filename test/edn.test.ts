@@ -5,6 +5,11 @@ import test from 'ava';
 
 import { EDNVal, parseEDNString, parseEDNListStream } from '../src';
 
+test('empty document as null', (t) => {
+  t.is(parseEDNString(''), null);
+  t.is(parseEDNString('; just some comment'), null);
+});
+
 test('empty string', (t) => {
   t.is(parseEDNString('""'), '');
 });
