@@ -36,12 +36,13 @@ const spaceChars = [',', ' ', '\t', '\n', '\r'];
 const intRegex = /^[-+]?(0|[1-9][0-9]*)$/;
 const floatRegex = /^[-+]?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?(0|[1-9][0-9]*))?M?$/;
 
-export class ParseEDNListSteam extends stream.Transform {
+class EDNListParser {
   stack = [];
   mode = ParseMode.idle;
   state = '';
   result: EDNVal | undefined;
   started = false;
+  done = false;
 
   mapAs: ParseOptions['mapAs'];
   setAs: ParseOptions['setAs'];
@@ -56,7 +57,6 @@ export class ParseEDNListSteam extends stream.Transform {
     charAs = 'object',
     listAs = 'object',
   }: ParseOptions = {}) {
-    super({ readableObjectMode: true });
     this.mapAs = mapAs;
     this.setAs = setAs;
     this.keywordAs = keywordAs;
@@ -153,16 +153,15 @@ export class ParseEDNListSteam extends stream.Transform {
     this.state = '';
   }
 
-  _transform(chunk, encoding, callback) {
-    // TODO encoding
-    const edn = chunk.toString();
-    for (let i = 0; i < edn.length; i++) {
+  next(str: string) {
+    const values = [];
+    for (let i = 0; i < str.length; i++) {
       if (this.stack.length === 0 && this.result !== undefined) {
-        this.push(this.result);
+        values.push(this.result);
         this.result = undefined;
       }
 
-      const char = edn[i];
+      const char = str[i];
 
       if (this.mode === ParseMode.idle) {
         if (char === '"') {
@@ -224,11 +223,10 @@ export class ParseEDNListSteam extends stream.Transform {
           this.updateStack();
           if (this.stack.length === 0) {
             if (this.result !== undefined) {
-              this.push(this.result);
+              values.push(this.result);
             }
-            this.push(null);
-            callback();
-            return;
+            this.done = true;
+            return values;
           }
           const [stackItem, prevState] = this.stack.pop();
           if (this.listAs === 'array') {
@@ -305,6 +303,31 @@ export class ParseEDNListSteam extends stream.Transform {
         }
       }
     }
+    return values;
+  }
+
+  isDone() {
+    return this.done;
+  }
+}
+
+export class ParseEDNListSteam extends stream.Transform {
+  parser: EDNListParser;
+
+  constructor(options?: ParseOptions) {
+    super({ readableObjectMode: true });
+    this.parser = new EDNListParser(options);
+  }
+
+  _transform(chunk, encoding, callback) {
+    // TODO encoding
+    const values = this.parser.next(chunk.toString());
+    for (const val of values) {
+      this.push(val);
+    }
+    if (this.parser.isDone()) {
+      this.push(null);
+    }
     callback();
   }
 }
@@ -317,7 +340,10 @@ export const parseEDNString = (
   edn: string,
   parseOptions?: ParseOptions,
 ): EDNValOrObject => {
-  const s = parseEDNListStream(parseOptions);
-  s.write('(' + edn + ')');
-  return s.read();
+  const parser = new EDNListParser(parseOptions);
+  const [result] = parser.next('(' + edn + ')');
+  if (result === undefined) {
+    return null;
+  }
+  return result;
 };

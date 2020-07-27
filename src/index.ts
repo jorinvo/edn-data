@@ -1,9 +1,11 @@
+// TODO: Refactor parser to work for single element and not only lists
+// TODO: Support browser (non-streaming)
 // TODO: Allow to specify handler functions for tags. Date is one implementation of that
 // TODO: Allow to drop tags, a special case of a generic handler function
-// TODO: Support browser (non-streaming)
 // TODO: the return type can depend on the options
 // TODO: Error when wrong closing tag
 // TODO: test edn generation
+// TODO: run tests in github action
 // TODO: keywords must contain a single slash
 // TODO: Can you tag a tagged val?
 // TODO: keywords and symbols need some care with characters
