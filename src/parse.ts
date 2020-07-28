@@ -1,10 +1,8 @@
-import * as stream from 'stream';
-
 import { EDNVal } from './types';
 
 export type EDNValOrObject = EDNVal | { [key: string]: EDNValOrObject };
 
-interface ParseOptions {
+export interface ParseOptions {
   mapAs?: 'doubleArray' | 'object' | 'map';
   setAs?: 'object' | 'array' | 'set';
   listAs?: 'object' | 'array';
@@ -36,11 +34,11 @@ const spaceChars = [',', ' ', '\t', '\n', '\r'];
 const intRegex = /^[-+]?(0|[1-9][0-9]*)$/;
 const floatRegex = /^[-+]?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?(0|[1-9][0-9]*))?M?$/;
 
-class EDNListParser {
+export class EDNListParser {
   stack = [];
   mode = ParseMode.idle;
   state = '';
-  result: EDNVal | undefined;
+  result: EDNValOrObject | undefined;
   started = false;
   done = false;
 
@@ -153,7 +151,7 @@ class EDNListParser {
     this.state = '';
   }
 
-  next(str: string) {
+  next(str: string): (EDNVal | undefined)[] {
     const values = [];
     for (let i = 0; i < str.length; i++) {
       if (this.stack.length === 0 && this.result !== undefined) {
@@ -306,42 +304,19 @@ class EDNListParser {
     return values;
   }
 
-  isDone() {
+  isDone(): boolean {
     return this.done;
   }
 }
-
-export class ParseEDNListSteam extends stream.Transform {
-  parser: EDNListParser;
-
-  constructor(options?: ParseOptions) {
-    super({ readableObjectMode: true });
-    this.parser = new EDNListParser(options);
-  }
-
-  _transform(chunk, encoding, callback) {
-    // TODO encoding
-    const values = this.parser.next(chunk.toString());
-    for (const val of values) {
-      this.push(val);
-    }
-    if (this.parser.isDone()) {
-      this.push(null);
-    }
-    callback();
-  }
-}
-
-export const parseEDNListStream = (parseOptions?: ParseOptions) => {
-  return new ParseEDNListSteam(parseOptions);
-};
 
 export const parseEDNString = (
   edn: string,
   parseOptions?: ParseOptions,
 ): EDNValOrObject => {
+  // TODO: Best to refactor to have a core parser wrapping in a list
   const parser = new EDNListParser(parseOptions);
   const [result] = parser.next('(' + edn + ')');
+  // TODO: What if !parse.isDone()?
   if (result === undefined) {
     return null;
   }
