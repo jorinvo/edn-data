@@ -437,6 +437,21 @@ test('tagged key', (t) => {
 test('tagged int', (t) => {
   t.deepEqual(parseEDNString('#my/tag 555'), { tag: 'my/tag', val: 555 });
 });
+test('custom tag handler', (t) => {
+  t.deepEqual(
+    parseEDNString('#my/tag 5', {
+      tagHandlers: {
+        'my/tag': (val) => {
+          if (typeof val !== 'number') {
+            throw new Error('not a number');
+          }
+          return val * 2;
+        },
+      },
+    }),
+    10,
+  );
+});
 
 test('#inst as Date', (t) => {
   t.deepEqual(

@@ -1,5 +1,3 @@
-// TODO: Allow to specify handler functions for tags. Date is one implementation of that
-// TODO: Allow to drop tags, a special case of a generic handler function
 // TODO: Error when wrong closing tag
 // TODO: test edn generation
 // TODO: run tests in github action
@@ -12,7 +10,7 @@
 // TODO: support parsing nested #_ discard, does it work in Clojure? Is it mentioned in the spec?
 // TODO: Production build
 // TODO: Instruction how to use in browser
-// TODO: The return type can depend on the options
+// TODO: The return type can depend on the options, also on the tagHandlers types
 // TODO: Refactor parser to work for single element and not only lists
 
 export { EDNVal } from './types';

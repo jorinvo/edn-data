@@ -1,13 +1,12 @@
 import { EDNVal } from './types';
 
-export type EDNValOrObject = EDNVal | { [key: string]: EDNValOrObject };
-
 export interface ParseOptions {
   mapAs?: 'doubleArray' | 'object' | 'map';
   setAs?: 'object' | 'array' | 'set';
   listAs?: 'object' | 'array';
   keywordAs?: 'object' | 'string';
   charAs?: 'object' | 'string';
+  tagHandlers?: { [tag: string]: (val: unknown) => unknown };
 }
 
 enum ParseMode {
@@ -34,11 +33,20 @@ const spaceChars = [',', ' ', '\t', '\n', '\r'];
 const intRegex = /^[-+]?(0|[1-9][0-9]*)$/;
 const floatRegex = /^[-+]?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?(0|[1-9][0-9]*))?M?$/;
 
+const defaultTagHandlers = {
+  inst: (val: EDNVal): Date => {
+    if (typeof val !== 'string') {
+      throw new Error('#inst value must be a string');
+    }
+    return new Date(val);
+  },
+};
+
 export class EDNListParser {
   stack = [];
   mode = ParseMode.idle;
   state = '';
-  result: EDNValOrObject | undefined;
+  result: unknown;
   started = false;
   done = false;
 
@@ -47,6 +55,7 @@ export class EDNListParser {
   keywordAs: ParseOptions['keywordAs'];
   charAs: ParseOptions['charAs'];
   listAs: ParseOptions['listAs'];
+  tagHandlers: ParseOptions['tagHandlers'];
 
   constructor({
     mapAs = 'doubleArray',
@@ -54,12 +63,14 @@ export class EDNListParser {
     keywordAs = 'object',
     charAs = 'object',
     listAs = 'object',
+    tagHandlers = {},
   }: ParseOptions = {}) {
     this.mapAs = mapAs;
     this.setAs = setAs;
     this.keywordAs = keywordAs;
     this.charAs = charAs;
     this.listAs = listAs;
+    this.tagHandlers = { ...defaultTagHandlers, ...tagHandlers };
   }
 
   updateStack(): void {
@@ -85,9 +96,9 @@ export class EDNListParser {
         this.result = undefined;
         return;
       }
-      if (prevState === 'inst') {
-        // TODO: what if invalid date?
-        this.result = new Date(this.result as string);
+      const tagHandler = this.tagHandlers[prevState];
+      if (tagHandler) {
+        this.result = tagHandler(this.result);
         return;
       }
       this.result = { tag: prevState, val: this.result };
@@ -312,7 +323,7 @@ export class EDNListParser {
 export const parseEDNString = (
   edn: string,
   parseOptions?: ParseOptions,
-): EDNValOrObject => {
+): unknown => {
   // TODO: Best to refactor to have a core parser wrapping in a list
   const parser = new EDNListParser(parseOptions);
   const [result] = parser.next('(' + edn + ')');
