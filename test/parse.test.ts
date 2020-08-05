@@ -437,6 +437,33 @@ test('tagged key', (t) => {
 test('tagged int', (t) => {
   t.deepEqual(parseEDNString('#my/tag 555'), { tag: 'my/tag', val: 555 });
 });
+test('tag tagged value', (t) => {
+  t.deepEqual(parseEDNString('#ns.a/tag2 #ns.a/tag1 :key'), {
+    tag: 'ns.a/tag2',
+    val: {
+      tag: 'ns.a/tag1',
+      val: { key: 'key' },
+    },
+  });
+});
+test('tag tagged value, nested', (t) => {
+  t.deepEqual(parseEDNString('(:a [#ns.a/tag2 #ns.a/tag1 :key "hi"] 1)'), {
+    list: [
+      { key: 'a' },
+      [
+        {
+          tag: 'ns.a/tag2',
+          val: {
+            tag: 'ns.a/tag1',
+            val: { key: 'key' },
+          },
+        },
+        'hi',
+      ],
+      1,
+    ],
+  });
+});
 test('custom tag handler', (t) => {
   t.deepEqual(
     parseEDNString('#my/tag 5', {

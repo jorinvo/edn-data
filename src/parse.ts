@@ -94,17 +94,18 @@ export class EDNListParser {
       this.stack.pop();
       if (prevState === '_') {
         this.result = undefined;
-        return;
+      } else {
+        const tagHandler = this.tagHandlers[prevState];
+        if (tagHandler) {
+          this.result = tagHandler(this.result);
+        } else {
+          this.result = { tag: prevState, val: this.result };
+        }
       }
-      const tagHandler = this.tagHandlers[prevState];
-      if (tagHandler) {
-        this.result = tagHandler(this.result);
-        return;
-      }
-      this.result = { tag: prevState, val: this.result };
+      this.updateStack();
       return;
     }
-    //   // TODO: Else error
+    // TODO: Else error
     this.result = undefined;
   }
 
