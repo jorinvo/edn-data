@@ -1,4 +1,3 @@
-// TODO: support parsing nested #_ discard, does it work in Clojure? Is it mentioned in the spec?
 // TODO: run tests in github action
 // TODO: Production build
 // TODO: Instruction how to use in browser

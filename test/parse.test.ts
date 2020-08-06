@@ -543,6 +543,9 @@ test('discard tag', (t) => {
   t.deepEqual(parseEDNString('#_  #ns.a/tag :key'), null);
   t.deepEqual(parseEDNString('#_#ns.a/tag :key'), null);
 });
+test('multiple discards', (t) => {
+  t.deepEqual(parseEDNString('#_ #_ #_ 1 2 3'), null);
+});
 
 test('crux tx response', (t) => {
   t.deepEqual(
