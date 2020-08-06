@@ -1,4 +1,3 @@
-// TODO: run tests in github action
 // TODO: Production build
 // TODO: Instruction how to use in browser
 // TODO: Release it
