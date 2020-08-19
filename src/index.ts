@@ -13,4 +13,10 @@
 
 export { EDNVal } from './types';
 export { parseEDNString } from './parse';
-export { toEDNString, tagValue, toKeyword, toSymbol } from './generate';
+export {
+  toEDNString,
+  toEDNStringFromSimpleObject,
+  tagValue,
+  toKeyword,
+  toSymbol,
+} from './generate';

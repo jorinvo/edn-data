@@ -7,6 +7,7 @@ import {
   EDNSet,
   EDNSymbol,
   EDNTaggedVal,
+  EDNObjectableVal,
 } from './types';
 
 const isEDNKeyword = (value: Record<string, EDNVal>): value is EDNKeyword => {
@@ -126,6 +127,72 @@ export const toEDNString = (value: EDNVal): string => {
 
   if (isEDNChar(value)) {
     return `\${value.char}`;
+  }
+
+  throw new TypeError(`Unknown type: ${JSON.stringify(value)}`);
+};
+
+export const toEDNStringFromSimpleObject = (
+  value: EDNObjectableVal,
+  options: { keysAs: 'keyword' | 'string' } = { keysAs: 'keyword' },
+): string => {
+  if (typeof value === 'string') {
+    return JSON.stringify(value);
+  }
+
+  if (Array.isArray(value)) {
+    return `[${value
+      .map((v) => toEDNStringFromSimpleObject(v, options))
+      .join(' ')}]`;
+  }
+
+  if (typeof value === 'number') {
+    return value.toString();
+  }
+
+  if (typeof value === 'boolean') {
+    return JSON.stringify(value);
+  }
+
+  if (value === null) {
+    return 'nil';
+  }
+
+  if (value instanceof Date) {
+    return `#inst "${value.toISOString()}"`;
+  }
+
+  if (typeof value === 'bigint') {
+    return `${value}N`;
+  }
+
+  if (value instanceof Map) {
+    return `{${[...value]
+      .map(
+        ([k, v]: [EDNObjectableVal, EDNObjectableVal]) =>
+          `${toEDNStringFromSimpleObject(
+            k,
+            options,
+          )} ${toEDNStringFromSimpleObject(v, options)}`,
+      )
+      .join(' ')}}`;
+  }
+
+  if (value instanceof Set) {
+    return `#{${[...value]
+      .map((v) => toEDNStringFromSimpleObject(v, options))
+      .join(' ')}}`;
+  }
+
+  if (typeof value === 'object') {
+    return `{${Object.entries(value)
+      .map(
+        ([k, v]: [string, EDNObjectableVal]) =>
+          `${
+            options.keysAs === 'string' ? JSON.stringify(k) : `:${k}`
+          } ${toEDNStringFromSimpleObject(v, options)}`,
+      )
+      .join(' ')}}`;
   }
 
   throw new TypeError(`Unknown type: ${JSON.stringify(value)}`);
