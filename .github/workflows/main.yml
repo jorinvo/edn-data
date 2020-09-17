@@ -34,7 +34,7 @@ jobs:
         node-version: 12.0.0
     - run: npm ci
     - run: npm run build
-    - name: Publish if version has been updated
+    - name: Link to stream sub-package
       run: echo "module.exports = require('./dist/stream')" > stream.js
     - name: Publish if version has been updated
       uses: pascalgn/npm-publish-action@06e0830ea83eea10ed4a62654eeaedafb8bf50fc
