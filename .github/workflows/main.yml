@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [8.x, 10.x, 12.x]
+        node-version: [10.x, 12.x]
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
@@ -23,6 +23,7 @@ jobs:
 
   npm-publish:
     name: npm-publish
+    needs: test
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -36,8 +37,8 @@ jobs:
     - name: Publish if version has been updated
       uses: pascalgn/npm-publish-action@06e0830ea83eea10ed4a62654eeaedafb8bf50fc
       with: # All of theses inputs are optional
-        tag_name: "v%s"
-        tag_message: "v%s"
+        tag_name: "%s"
+        tag_message: "%s"
         commit_pattern: "^Release (\\S+)"
         workspace: "."
       env: # More info about the environment variables in the README
