@@ -1,11 +1,17 @@
 {
   "name": "edn-data",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "EDN parser and generator that work with plain JS data, with support for TS and node streams",
   "main": "dist/index.js",
   "directories": {
     "test": "test"
   },
+  "files": [
+    "README.md",
+    "LICENSE",
+    "package.json",
+    "dist/*"
+  ],
   "scripts": {
     "test": "ava",
     "test:watch": "ava --watch",
