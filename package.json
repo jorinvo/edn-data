@@ -1,6 +1,6 @@
 {
   "name": "edn-data",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "EDN parser and generator that work with plain JS data, with support for TS and node streams",
   "main": "dist/index.js",
   "directories": {

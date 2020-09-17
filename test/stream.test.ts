@@ -30,3 +30,11 @@ test('stream-to-array', async (t) => {
     false,
   ]);
 });
+
+test('readme example', (t) => {
+  const s = parseEDNListStream();
+  s.write('(1 2 3)');
+  t.deepEqual(s.read(), 1);
+  t.deepEqual(s.read(), 2);
+  t.deepEqual(s.read(), 3);
+});

@@ -575,3 +575,22 @@ test('crux tx response as object', (t) => {
     },
   );
 });
+
+test('readme exsample', (t) => {
+  t.deepEqual(parseEDNString('{:key "value" :list [1 2 3]}'), {
+    map: [
+      [{ key: 'key' }, 'value'],
+      [{ key: 'list' }, [1, 2, 3]],
+    ],
+  });
+  t.deepEqual(
+    parseEDNString('{:key "value" :list [1 2 3]}', {
+      mapAs: 'object',
+      keywordAs: 'string',
+    }),
+    {
+      key: 'value',
+      list: [1, 2, 3],
+    },
+  );
+});

@@ -126,7 +126,7 @@ export const toEDNString = (value: EDNVal): string => {
   }
 
   if (isEDNChar(value)) {
-    return `\${value.char}`;
+    return `\\${value.char}`;
   }
 
   throw new TypeError(`Unknown type: ${JSON.stringify(value)}`);
