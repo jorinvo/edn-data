@@ -68,7 +68,7 @@ parseEDNString(
 }
 ```
 
-EDN lists can be stream value by value as standard Node.js Readable streams.
+EDN lists can be streamed value by value as standard Node.js Readable streams.
 This is not available in the browser.
 
 ```js
