@@ -133,6 +133,13 @@ npm run fix
 CI verifies tests and creates npm releases for tags automatically.
 
 
+### Publish a new version
+
+1. Change the `version` in the `package.json`
+2. Push a commit to master in the following form `Release <version>`
+3. A Git tag will be created and the new version will be published to NPM
+
+
 ## License
 
 [MIT](./license)
