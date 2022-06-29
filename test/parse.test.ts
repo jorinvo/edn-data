@@ -130,6 +130,18 @@ test('float E-', (t) => {
 test('float e with zeros', (t) => {
   t.is(parseEDNString('1001.00100e10'), 10010010000000);
 });
+test('bigint +', (t) => {
+  t.is(
+    parseEDNString('1234578901234567890124356780123456789N'),
+    BigInt('1234578901234567890124356780123456789'),
+  );
+});
+test('bigint -', (t) => {
+  t.is(
+    parseEDNString('-1234578901234567890124356780123456789N'),
+    BigInt('-1234578901234567890124356780123456789'),
+  );
+});
 
 test('nil', (t) => {
   t.is(parseEDNString('nil'), null);
