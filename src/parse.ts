@@ -31,6 +31,7 @@ const stringEscapeMap = {
 };
 const spaceChars = [',', ' ', '\t', '\n', '\r'];
 const intRegex = /^[-+]?(0|[1-9][0-9]*)$/;
+const bigintRegex = /^[-+]?(0|[1-9][0-9]*)N$/;
 const floatRegex = /^[-+]?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?(0|[1-9][0-9]*))?M?$/;
 
 const defaultTagHandlers = {
@@ -134,6 +135,8 @@ export class EDNListParser {
     } else if (floatRegex.test(this.state)) {
       // Float
       this.result = parseFloat(this.state);
+    } else if (bigintRegex.test(this.state)) {
+      this.result = BigInt(this.state.substr(0, this.state.length - 1));
     } else if (this.state[0] === '\\') {
       // Char
       // TODO: invalid if nothing follows the \
