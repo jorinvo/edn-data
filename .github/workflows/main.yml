@@ -34,6 +34,7 @@ jobs:
         node-version: 12.0.0
     - run: npm ci
     - run: npm run build
+    - run: git config --global --add safe.directory /github/workspace
     - name: Link to stream sub-package
       run: echo "module.exports = require('./dist/stream')" > stream.js
     - name: Publish if version has been updated
