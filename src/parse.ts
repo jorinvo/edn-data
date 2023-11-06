@@ -7,6 +7,7 @@ export interface ParseOptions {
   keywordAs?: 'object' | 'string';
   charAs?: 'object' | 'string';
   tagHandlers?: { [tag: string]: (val: unknown) => unknown };
+  objectKeysAs?: 'object' | 'string'
 }
 
 enum ParseMode {
@@ -57,6 +58,7 @@ export class EDNListParser {
   charAs: ParseOptions['charAs'];
   listAs: ParseOptions['listAs'];
   tagHandlers: ParseOptions['tagHandlers'];
+  objectKeysAs: ParseOptions['objectKeysAs'];
 
   constructor({
     mapAs = 'doubleArray',
@@ -65,12 +67,14 @@ export class EDNListParser {
     charAs = 'object',
     listAs = 'object',
     tagHandlers = {},
+    objectKeysAs
   }: ParseOptions = {}) {
     this.mapAs = mapAs;
     this.setAs = setAs;
     this.keywordAs = keywordAs;
     this.charAs = charAs;
     this.listAs = listAs;
+    this.objectKeysAs = objectKeysAs;
     this.tagHandlers = { ...defaultTagHandlers, ...tagHandlers };
   }
 
@@ -201,9 +205,41 @@ export class EDNListParser {
             if (stackItem === StackItem.map) {
               // TODO: What if map is closed too early?
               if (this.mapAs === 'object') {
-                // TODO: what if map has non-stringable keys? keys as JSON?
                 this.result = prevState[0].reduce((memo, [k, v]) => {
-                  return { ...memo, [k]: v };
+                  let key = k;
+                  let value = v;
+                  /**
+                   * This setting ensures the back-compatibility
+                   * 
+                   * The problem: Our EDN source will provide me the following
+                   * [407 {:someKey "lovely-value"}] #{123}
+                   * 
+                   * The existing behavior will serialize that to:
+                   * [407,[object Object]]: [123]
+                   * which is both invalid and prone to key clashes
+                   * 
+                   * In presence of the new option the whole key will be stringified as JSON to resolve both problems.
+                   * '[407,{"someKey":"lovely-value"}]': [123]
+                   * 
+                   * That will make the key unique and readable and won't change the value format
+                   * 
+                   * For option value 'object' we will go one step further to wrap the pair in easy to access object
+                   * 
+                   * '[407,{"someKey":"lovely-value"}]': {
+                   *    key: [407, {someKey: "lovey-value"}],
+                   *    value: [123]
+                   * }
+                   */
+                  if (typeof k === 'object' && this.objectKeysAs) {
+                    key = JSON.stringify(k);
+                    if (this.objectKeysAs === 'object') {
+                      value = {
+                        key: k,
+                        value
+                      };
+                    }
+                  }
+                  return { ...memo, [key]: value };
                 }, {});
               } else if (this.mapAs === 'map') {
                 this.result = new Map(prevState[0]);

@@ -606,3 +606,38 @@ test('readme exsample', (t) => {
     },
   );
 });
+
+test('objectKeys as string', (t) => {
+  t.deepEqual(
+    parseEDNString('{[407 {:someKey "lovely-value"}] #{123}}', {
+      charAs: 'string',
+      keywordAs: 'string',
+      listAs: 'object',
+      mapAs: 'object',
+      setAs: 'array',
+      objectKeysAs: 'string',
+    }),
+    {
+      '[407,{"someKey":"lovely-value"}]': [123],
+    },
+  );
+});
+
+test('objectKeys as object', (t) => {
+  t.deepEqual(
+    parseEDNString('{[407 {:someKey "lovely-value"}] #{123}}', {
+      charAs: 'string',
+      keywordAs: 'string',
+      listAs: 'object',
+      mapAs: 'object',
+      setAs: 'array',
+      objectKeysAs: 'object',
+    }),
+    {
+      '[407,{"someKey":"lovely-value"}]': {
+        key: [407, { someKey: 'lovely-value' }],
+        value: [123],
+      },
+    },
+  );
+});
