@@ -607,6 +607,19 @@ test('readme exsample', (t) => {
   );
 });
 
+test('symbols as strings', (t) => {
+  t.deepEqual(
+    parseEDNString('{:some datum}', {
+      mapAs: 'object',
+      symbolAs: 'string',
+      keywordAs: 'string'
+    }),
+    {
+      some: "datum"
+    }
+  )
+});
+
 test('objectKeys as string', (t) => {
   t.deepEqual(
     parseEDNString('{[407 {:someKey "lovely-value"}] #{123}}', {
