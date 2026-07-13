@@ -612,12 +612,12 @@ test('symbols as strings', (t) => {
     parseEDNString('{:some datum}', {
       mapAs: 'object',
       symbolAs: 'string',
-      keywordAs: 'string'
+      keywordAs: 'string',
     }),
     {
-      some: "datum"
-    }
-  )
+      some: 'datum',
+    },
+  );
 });
 
 test('objectKeys as string', (t) => {

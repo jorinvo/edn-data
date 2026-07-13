@@ -1,5 +1,3 @@
-import { promisify } from 'util';
-
 import * as streamToArray from 'stream-to-array';
 import test from 'ava';
 
@@ -22,7 +20,7 @@ test('stream-to-array', async (t) => {
   s.write(' ({:hello "world"} "how are you"');
   s.write('"my');
   s.write(' friend" :end false)');
-  t.deepEqual(await promisify(streamToArray)(s), [
+  t.deepEqual(await streamToArray(s), [
     { hello: 'world' },
     'how are you',
     'my friend',

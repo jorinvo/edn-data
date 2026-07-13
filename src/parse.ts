@@ -8,7 +8,7 @@ export interface ParseOptions {
   symbolAs?: 'object' | 'string';
   charAs?: 'object' | 'string';
   tagHandlers?: { [tag: string]: (val: unknown) => unknown };
-  objectKeysAs?: 'object' | 'string'
+  objectKeysAs?: 'object' | 'string';
 }
 
 enum ParseMode {
@@ -34,7 +34,8 @@ const stringEscapeMap = {
 const spaceChars = [',', ' ', '\t', '\n', '\r'];
 const intRegex = /^[-+]?(0|[1-9][0-9]*)$/;
 const bigintRegex = /^[-+]?(0|[1-9][0-9]*)N$/;
-const floatRegex = /^[-+]?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?(0|[1-9][0-9]*))?M?$/;
+const floatRegex =
+  /^[-+]?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?(0|[1-9][0-9]*))?M?$/;
 
 const defaultTagHandlers = {
   inst: (val: EDNVal): Date => {
@@ -70,7 +71,7 @@ export class EDNListParser {
     charAs = 'object',
     listAs = 'object',
     tagHandlers = {},
-    objectKeysAs
+    objectKeysAs,
   }: ParseOptions = {}) {
     this.mapAs = mapAs;
     this.setAs = setAs;
@@ -218,21 +219,21 @@ export class EDNListParser {
                   let value = v;
                   /**
                    * This setting ensures the back-compatibility
-                   * 
+                   *
                    * The problem: Our EDN source will provide me the following
                    * [407 {:someKey "lovely-value"}] #{123}
-                   * 
+                   *
                    * The existing behavior will serialize that to:
                    * [407,[object Object]]: [123]
                    * which is both invalid and prone to key clashes
-                   * 
+                   *
                    * In presence of the new option the whole key will be stringified as JSON to resolve both problems.
                    * '[407,{"someKey":"lovely-value"}]': [123]
-                   * 
+                   *
                    * That will make the key unique and readable and won't change the value format
-                   * 
+                   *
                    * For option value 'object' we will go one step further to wrap the pair in easy to access object
-                   * 
+                   *
                    * '[407,{"someKey":"lovely-value"}]': {
                    *    key: [407, {someKey: "lovey-value"}],
                    *    value: [123]
@@ -243,7 +244,7 @@ export class EDNListParser {
                     if (this.objectKeysAs === 'object') {
                       value = {
                         key: k,
-                        value
+                        value,
                       };
                     }
                   }
@@ -270,7 +271,7 @@ export class EDNListParser {
         if (char === ']') {
           this.match();
           this.updateStack();
-          const [stackItem, prevState] = this.stack.pop();
+          const [, prevState] = this.stack.pop();
           this.result = prevState;
           this.updateStack();
           continue;
@@ -285,7 +286,7 @@ export class EDNListParser {
             this.done = true;
             return values;
           }
-          const [stackItem, prevState] = this.stack.pop();
+          const [, prevState] = this.stack.pop();
           if (this.listAs === 'array') {
             this.result = prevState;
           } else {
