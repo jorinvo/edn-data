@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x, 26.x]
+        node-version: [24.x, 26.x]
     steps:
     - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
@@ -44,13 +44,13 @@ jobs:
       run: |
         PACKAGE_NAME=$(node -p "require('./package.json').name")
         CURRENT_VERSION=$(node -p "require('./package.json').version")
-        
+
         if npm view "$PACKAGE_NAME@$CURRENT_VERSION" version &> /dev/null; then
           echo "Version $CURRENT_VERSION of $PACKAGE_NAME is already published. Skipping."
         else
           echo "Publishing version $CURRENT_VERSION of $PACKAGE_NAME..."
           npm publish --provenance --access public
-          
+
           # Tag and push back to GitHub
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
