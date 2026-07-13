@@ -3,7 +3,8 @@
     "module": "commonjs",
     "target": "es2020",
     "declaration": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "skipLibCheck": true
   },
   "include": [
     "src/**/*"
