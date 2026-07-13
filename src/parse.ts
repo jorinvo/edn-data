@@ -5,6 +5,7 @@ export interface ParseOptions {
   setAs?: 'object' | 'array' | 'set';
   listAs?: 'object' | 'array';
   keywordAs?: 'object' | 'string';
+  symbolAs?: 'object' | 'string';
   charAs?: 'object' | 'string';
   tagHandlers?: { [tag: string]: (val: unknown) => unknown };
   objectKeysAs?: 'object' | 'string'
@@ -55,6 +56,7 @@ export class EDNListParser {
   mapAs: ParseOptions['mapAs'];
   setAs: ParseOptions['setAs'];
   keywordAs: ParseOptions['keywordAs'];
+  symbolAs: ParseOptions['charAs'];
   charAs: ParseOptions['charAs'];
   listAs: ParseOptions['listAs'];
   tagHandlers: ParseOptions['tagHandlers'];
@@ -64,6 +66,7 @@ export class EDNListParser {
     mapAs = 'doubleArray',
     setAs = 'object',
     keywordAs = 'object',
+    symbolAs = 'object',
     charAs = 'object',
     listAs = 'object',
     tagHandlers = {},
@@ -72,6 +75,7 @@ export class EDNListParser {
     this.mapAs = mapAs;
     this.setAs = setAs;
     this.keywordAs = keywordAs;
+    this.symbolAs = symbolAs;
     this.charAs = charAs;
     this.listAs = listAs;
     this.objectKeysAs = objectKeysAs;
@@ -165,7 +169,11 @@ export class EDNListParser {
       }
     } else if (this.state !== '') {
       // Symbol
-      this.result = { sym: this.state };
+      if (this.symbolAs === 'string') {
+        this.result = this.state;
+      } else {
+        this.result = { sym: this.state };
+      }
     }
     this.state = '';
   }
