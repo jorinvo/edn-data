@@ -136,8 +136,9 @@ CI verifies tests and creates npm releases for tags automatically.
 ### Publish a new version
 
 1. Change the `version` in the `package.json`
-2. Push a commit to master in the following form `Release <version>`
-3. A Git tag will be created and the new version will be published to NPM
+2. Run `npm install` to make sure the `package-lock.json` file is up to date
+3. Push a commit to master in the following form `Release <version>`
+4. A Git tag will be created and the new version will be published to NPM
 
 
 ## License
