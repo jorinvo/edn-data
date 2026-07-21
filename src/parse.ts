@@ -15,6 +15,7 @@ enum ParseMode {
   idle,
   string,
   escape,
+  unicode,
   comment,
 }
 enum StackItem {
@@ -28,10 +29,14 @@ const stringEscapeMap = {
   t: '\t',
   r: '\r',
   n: '\n',
+  b: '\b',
+  f: '\f',
   '\\': '\\',
   '"': '"',
 };
 const spaceChars = [',', ' ', '\t', '\n', '\r'];
+const hexRegex = /^[0-9a-fA-F]$/;
+const charUnicodeRegex = /^\\u[0-9a-fA-F]{4}$/;
 const intRegex = /^[-+]?(0|[1-9][0-9]*)$/;
 const bigintRegex = /^[-+]?(0|[1-9][0-9]*)N$/;
 const floatRegex =
@@ -160,6 +165,9 @@ export class EDNListParser {
         c = '	';
       } else if (this.state === '\\\\') {
         c = '\\';
+      } else if (charUnicodeRegex.test(this.state)) {
+        // \uNNNN character literal (#3)
+        c = String.fromCharCode(parseInt(this.state.slice(2), 16));
       } else {
         c = this.state.substr(1);
       }
@@ -350,11 +358,30 @@ export class EDNListParser {
         }
         this.state += char;
       } else if (this.mode === ParseMode.escape) {
-        // TODO what should happen when escaping other char
+        if (char === 'u') {
+          // \uNNNN: collect the 4 hex digits, which may span stream chunks
+          this.mode = ParseMode.unicode;
+          this.state = '';
+          continue;
+        }
         const escapedChar = stringEscapeMap[char];
+        if (escapedChar === undefined) {
+          throw new Error(`Unexpected escape character: \\${char}`);
+        }
         const [stackItem, prevState] = this.stack.pop();
         this.mode = stackItem;
         this.state = prevState + escapedChar;
+      } else if (this.mode === ParseMode.unicode) {
+        if (!hexRegex.test(char)) {
+          throw new Error(`Invalid unicode escape: \\u${this.state}${char}`);
+        }
+        this.state += char;
+        if (this.state.length === 4) {
+          const codePoint = parseInt(this.state, 16);
+          const [stackItem, prevState] = this.stack.pop();
+          this.mode = stackItem;
+          this.state = prevState + String.fromCharCode(codePoint);
+        }
       } else if (this.mode === ParseMode.comment) {
         if (char === '\n') {
           this.mode = ParseMode.idle;
