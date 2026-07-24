@@ -1,6 +1,6 @@
 import test from 'ava';
 
-import { EDNVal, parseEDNString } from '../src';
+import { EDNVal, parseEDNString, toEDNString } from '../src';
 
 test('empty document as null', (t) => {
   t.is(parseEDNString(''), null);
@@ -33,6 +33,42 @@ test('string with backslash', (t) => {
 });
 test('string with quote symbol', (t) => {
   t.is(parseEDNString('"\\""'), '"');
+});
+test('string with backspace', (t) => {
+  t.is(parseEDNString('"one\\btwo"'), 'one\btwo');
+});
+test('string with form feed', (t) => {
+  t.is(parseEDNString('"one\\ftwo"'), 'one\ftwo');
+});
+test('string with unicode escape', (t) => {
+  t.is(parseEDNString('"\\u0041"'), 'A');
+});
+test('string with non-ascii unicode escape', (t) => {
+  t.is(parseEDNString('"a\\u00e9b"'), 'aéb');
+});
+test('string with unicode escape spanning tokens', (t) => {
+  t.is(parseEDNString('"\\u26a1zap"'), '⚡zap');
+});
+test('unknown string escape throws', (t) => {
+  t.throws(() => parseEDNString('"a\\xb"'));
+});
+test('incomplete unicode escape throws', (t) => {
+  t.throws(() => parseEDNString('"a\\u00gz"'));
+});
+test('string escapes round-trip through toEDNString', (t) => {
+  // toEDNString emits \b \f \n \r \t and \uNNNN (via JSON.stringify); the
+  // parser must read every one of them back (#3).
+  for (let code = 0; code < 0x20; code++) {
+    const s = String.fromCharCode(code);
+    t.is(
+      parseEDNString(toEDNString(s)),
+      s,
+      `control char 0x${code.toString(16)}`,
+    );
+  }
+  for (const s of ['"', '\\', 'aéb', '⚡', 'tab\tnewline\n']) {
+    t.is(parseEDNString(toEDNString(s)), s);
+  }
 });
 test('string after symbol without space', (t) => {
   t.deepEqual(parseEDNString('[hi"hi"]'), [{ sym: 'hi' }, 'hi']);
@@ -79,6 +115,15 @@ test('char backslash', (t) => {
 });
 test('char as string', (t) => {
   t.deepEqual(parseEDNString('\\abc', { charAs: 'string' }), 'abc');
+});
+test('char unicode', (t) => {
+  t.deepEqual(parseEDNString('\\u0041'), { char: 'A' });
+});
+test('char unicode non-ascii', (t) => {
+  t.deepEqual(parseEDNString('\\u00e9'), { char: 'é' });
+});
+test('char unicode as string', (t) => {
+  t.deepEqual(parseEDNString('\\u26a1', { charAs: 'string' }), '⚡');
 });
 
 test('int', (t) => {

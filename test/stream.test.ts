@@ -36,3 +36,11 @@ test('readme example', (t) => {
   t.deepEqual(s.read(), 2);
   t.deepEqual(s.read(), 3);
 });
+
+test('unicode escape split across chunks', (t) => {
+  const s = parseEDNListStream();
+  s.write('("a\\u');
+  s.write('00');
+  s.write('e9b")');
+  t.deepEqual(s.read(), 'aéb');
+});
