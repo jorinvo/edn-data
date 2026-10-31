@@ -9,6 +9,11 @@ import {
   EDNTaggedVal,
   EDNObjectableVal,
 } from './types';
+import {
+  validateKeywordName,
+  validateSymbolName,
+  validateTagName,
+} from './validate';
 
 const isEDNKeyword = (value: Record<string, EDNVal>): value is EDNKeyword => {
   return value.key !== undefined;
@@ -45,18 +50,18 @@ const isEDNTaggedVal = (
 const isEDNChar = (value: Record<string, EDNVal>): value is EDNChar => {
   return value.char !== undefined;
 };
-// TODO: Tag has char restrictions
 export const tagValue = (tag: string, value: EDNVal): EDNTaggedVal => {
+  validateTagName(tag);
   return { tag, val: value };
 };
 
-// TODO: Keyword has char restrictions
 export const toKeyword = (value: string): EDNKeyword => {
+  validateKeywordName(value);
   return { key: value };
 };
 
-// TODO: Symbol has char restrictions
 export const toSymbol = (value: string): EDNSymbol => {
+  validateSymbolName(value);
   return { sym: value };
 };
 
@@ -110,10 +115,12 @@ export const toEDNString = (value: EDNVal): string => {
   }
 
   if (isEDNKeyword(value)) {
+    validateKeywordName(value.key);
     return `:${value.key}`;
   }
 
   if (isEDNSymbol(value)) {
+    validateSymbolName(value.sym);
     return value.sym;
   }
 
@@ -122,6 +129,7 @@ export const toEDNString = (value: EDNVal): string => {
   }
 
   if (isEDNTaggedVal(value)) {
+    validateTagName(value.tag);
     return `#${value.tag} ${toEDNString(value.val)}`;
   }
 
@@ -187,10 +195,14 @@ export const toEDNStringFromSimpleObject = (
   if (typeof value === 'object') {
     return `{${Object.entries(value)
       .map(
-        ([k, v]: [string, EDNObjectableVal]) =>
-          `${
+        ([k, v]: [string, EDNObjectableVal]) => {
+          if (options.keysAs !== 'string') {
+            validateKeywordName(k);
+          }
+          return `${
             options.keysAs === 'string' ? JSON.stringify(k) : `:${k}`
-          } ${toEDNStringFromSimpleObject(v, options)}`,
+          } ${toEDNStringFromSimpleObject(v, options)}`;
+        },
       )
       .join(' ')}}`;
   }
