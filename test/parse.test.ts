@@ -55,6 +55,25 @@ test('unknown string escape throws', (t) => {
 test('incomplete unicode escape throws', (t) => {
   t.throws(() => parseEDNString('"a\\u00gz"'));
 });
+test('unterminated input throws', (t) => {
+  t.throws(() => parseEDNString('[1'));
+  t.throws(() => parseEDNString('(1'));
+  t.throws(() => parseEDNString('#{1'));
+  t.throws(() => parseEDNString('{:a 1'));
+  t.throws(() => parseEDNString('"abc'));
+  t.throws(() => parseEDNString('#foo'));
+});
+test('map with odd number of forms throws', (t) => {
+  t.throws(() => parseEDNString('{:a}'));
+  t.throws(() =>
+    parseEDNString('{:a 1 :b}', { mapAs: 'object', keywordAs: 'string' }),
+  );
+});
+test('whitespace chars round-trip through toEDNString', (t) => {
+  for (const c of [' ', '\n', '\t', '\r']) {
+    t.deepEqual(parseEDNString(toEDNString({ char: c })), { char: c });
+  }
+});
 test('string escapes round-trip through toEDNString', (t) => {
   // toEDNString emits \b \f \n \r \t and \uNNNN (via JSON.stringify); the
   // parser must read every one of them back (#3).
