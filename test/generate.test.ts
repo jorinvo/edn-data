@@ -26,6 +26,21 @@ test('toEDNString readme sample', (t) => {
   );
 });
 
+test('toEDNString named whitespace chars', (t) => {
+  t.is(toEDNString({ char: ' ' }), '\\space');
+  t.is(toEDNString({ char: '\n' }), '\\newline');
+  t.is(toEDNString({ char: '\t' }), '\\tab');
+  t.is(toEDNString({ char: '\r' }), '\\return');
+  t.is(toEDNString({ char: 'constructor' }), '\\constructor');
+});
+
+test('non-finite numbers throw', (t) => {
+  for (const n of [Infinity, -Infinity, NaN]) {
+    t.throws(() => toEDNString(n));
+    t.throws(() => toEDNStringFromSimpleObject({ n }));
+  }
+});
+
 test('toEDNStringFromSimpleObject crux keysAs keyword', (t) => {
   t.is(
     toEDNStringFromSimpleObject({

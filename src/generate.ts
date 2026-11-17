@@ -50,6 +50,21 @@ const isEDNTaggedVal = (
 const isEDNChar = (value: Record<string, EDNVal>): value is EDNChar => {
   return value.char !== undefined;
 };
+
+const namedChars = new Map([
+  [' ', 'space'],
+  ['\n', 'newline'],
+  ['\t', 'tab'],
+  ['\r', 'return'],
+]);
+
+const numberToEDN = (value: number): string => {
+  if (!Number.isFinite(value)) {
+    throw new TypeError(`Cannot represent ${value} in EDN`);
+  }
+  return value.toString();
+};
+
 export const tagValue = (tag: string, value: EDNVal): EDNTaggedVal => {
   validateTagName(tag);
   return { tag, val: value };
@@ -75,7 +90,7 @@ export const toEDNString = (value: EDNVal): string => {
   }
 
   if (typeof value === 'number') {
-    return value.toString();
+    return numberToEDN(value);
   }
 
   if (typeof value === 'boolean') {
@@ -134,7 +149,7 @@ export const toEDNString = (value: EDNVal): string => {
   }
 
   if (isEDNChar(value)) {
-    return `\\${value.char}`;
+    return `\\${namedChars.get(value.char) || value.char}`;
   }
 
   throw new TypeError(`Unknown type: ${JSON.stringify(value)}`);
@@ -155,7 +170,7 @@ export const toEDNStringFromSimpleObject = (
   }
 
   if (typeof value === 'number') {
-    return value.toString();
+    return numberToEDN(value);
   }
 
   if (typeof value === 'boolean') {

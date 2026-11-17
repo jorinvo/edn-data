@@ -221,6 +221,11 @@ export class EDNListParser {
             const [stackItem, prevState] = this.stack.pop();
             if (stackItem === StackItem.map) {
               // TODO: What if map is closed too early?
+              if (prevState[1].length > 0) {
+                throw new Error(
+                  'Map literal must contain an even number of forms',
+                );
+              }
               if (this.mapAs === 'object') {
                 this.result = prevState[0].reduce((memo, [k, v]) => {
                   let key = k;
@@ -402,8 +407,11 @@ export const parseEDNString = (
 ): unknown => {
   // TODO: Best to refactor to have a core parser wrapping in a list
   const parser = new EDNListParser(parseOptions);
-  const [result] = parser.next('(' + edn + ')');
+  const [result] = parser.next('(' + edn + '\n)');
   // TODO: What if !parse.isDone()?
+  if (!parser.isDone()) {
+    throw new Error('Unexpected end of EDN input');
+  }
   if (result === undefined) {
     return null;
   }
